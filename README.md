@@ -15,9 +15,9 @@ Clone this project or download it from npm:
 
 You can run it as a command:
 
-    D:\Devel\bitcoin\address-scrapper>node src\main.js --help
+    D:\Devel\bitcoin\address-scrapper>node address-scrapper.js --help
 
-    Usage: main [options]
+    Usage: address-scrapper [options]
 
     Options:
 
