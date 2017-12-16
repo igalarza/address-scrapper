@@ -1,10 +1,15 @@
 #!/usr/bin/env node
+
+// External libraries
 const bitcoin = require('bitcoinjs-lib')
 const RpcClient = require('bitcoind-rpc')
 const program = require('commander')
-const initDatabase = require('./database')
-const exploreBlockchain = require('./blockexplorer')
 
+// Internal imports
+const initDatabase = require('./src/database')
+const exploreBlockchain = require('./src/chainexplorer')
+
+// Command-line options parser
 program
   .option('-u, --username <username>', 'The user to authenticate as')
   .option('-p, --password <password>', 'The user\'s password')
@@ -23,12 +28,8 @@ function addressScrapper (username, password, dbLocation, protocol, host, port) 
   protocol = initOption(protocol, 'http')
   dbLocation = initOption(dbLocation, 'loki.db')
 
-  if (typeof username ===  'undefined') {
-    throw new Error('username is mandatory')
-  }
-  if (typeof password ===  'undefined') {
-    throw new Error('password is mandatory')
-  }
+  checkMandatory(username, '--username is mandatory, run with --help for more info');
+  checkMandatory(password, '--password is mandatory, run with --help for more info');
 
   let config = {
     protocol: protocol,
@@ -45,10 +46,12 @@ function addressScrapper (username, password, dbLocation, protocol, host, port) 
     .then(() => process.exit())
 }
 
-function initOption(value, defaultValue) {
-  if (typeof value ===  'undefined') {
-    return defaultValue
-  } else {
-    return value
+function initOption (value, defaultValue) {
+  return (typeof value ===  'undefined') ? defaultValue : value
+}
+
+function checkMandatory (value, msg) {
+  if (typeof value === 'undefined') {
+    throw new Error(msg)
   }
 }

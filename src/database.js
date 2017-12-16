@@ -20,7 +20,7 @@ function initDatabase(dbLocation) {
       // Init addresses collection
       let addresses = db.getCollection('addresses')
       if (addresses == null) {
-        db.addCollection('addresses')
+        db.addCollection('addresses', {unique: ['address']})
       }
       // Init blocks collection
       let blocks = db.getCollection('blocks')
