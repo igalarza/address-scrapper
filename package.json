@@ -3,13 +3,15 @@
   "version": "0.0.1",
   "description": "Extracts bitcoin addresses from the blockchain and stores them.",
   "license": "GPL3.0",
+  "main": "src/main",
   "repository": {
     "type": "git",
     "url": "https://github.com/igalarza/address-scrapper.git"
   },
   "keywords": [
     "bitcoin",
-    "private key"
+    "private key",
+    "address"
   ],
   "author": "Ivan Galarza <nadeyyo@gmail.com>",
   "dependencies": {
@@ -17,12 +19,15 @@
     "commander": "^2.12.2",
     "lokijs": "^1.5.1"
   },
-  "main": "src/main",
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
+  },
   "engines": {
     "node": ">= 6.11.5"
   },
   "scripts": {
     "start": "node address-scraper.js",
+    "test": "./node_modules/.bin/jasmine-node test",
     "prepublish": "npm prune"
   }
 }

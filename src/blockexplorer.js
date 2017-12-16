@@ -7,9 +7,10 @@ function iterateBlocks (rpc, db, currentBlock, blockCount) {
       resolve('All blocks explored.')
     } else {
       console.log('iterateBlocks. currentBlock: ' + currentBlock)
+      let addresses = db.getCollection('addresses')
       getBlockInfo(rpc, currentBlock)
         .then((info) => persistBlock(db, info))
-        .then((info) => iterateTransactions(rpc, db, info.tx, 0))
+        .then((info) => iterateTransactions(rpc, addresses, info.tx, 0))
         .then(() => iterateBlocks(rpc, db, ++currentBlock, blockCount))
         .then(() => resolve())
         .catch((err) => reject(err))
