@@ -11,7 +11,12 @@ module.exports = function (grunt) {
       options: {
         forceExit: true,
         coverage: {
-          includeAllSources: true
+          includeAllSources: true,
+          excludes: [
+            '*.js',
+            'test/**.*',
+            'coverage/**'
+          ]
         },
         jasmine: {
           spec_dir: 'test',
