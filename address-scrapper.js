@@ -41,10 +41,7 @@ function addressScrapper (username, password, dbLocation, protocol, host, port, 
   }
 
   let rpc = new RpcClient(config)
-  let database = new Database({
-    log: logLevel,
-    dbLocation: dbLocation
-  })
+  let database = new Database(logLevel, dbLocation)
 
   database.init()
     .then((db) => {
