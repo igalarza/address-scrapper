@@ -6,22 +6,23 @@ const RpcClient = require('bitcoind-rpc')
 const program = require('commander')
 
 // Internal imports
-const initDatabase = require('./src/database')
-const exploreBlockchain = require('./src/chainexplorer')
+const Database = require('./src/database')
+const ChainExplorer = require('./src/chainexplorer')
 
 // Command-line options parser
 program
   .option('-u, --username <username>', 'The user to authenticate as')
   .option('-p, --password <password>', 'The user\'s password')
-  .option('-d, --database <dbLocation>', 'The file uri of the database to save the addresses (default: "loki.db")')
+  .option('-d, --database <file>', 'The file uri of the database to save the addresses (default: "loki.db")')
   .option('-t, --protocol <protocol>', 'The protocol used to connect with the Bitcoin node  (default: http)')
   .option('-h, --host <host>', 'The host where the Bitcoin node is running (default: 127.0.0.1)')
-  .option('-r, --port <port>', 'The port where the Bitcoin rpc service is running (default: 8332)')
+  .option('-r, --port <number>', 'The port where the Bitcoin rpc service is running (default: 8332)')
+  .option('-l, --log <number>', 'A number indicating the log level (default 0: no log, 1:info, 2: debug, 3:trace)')
   .parse(process.argv)
 
-addressScrapper(program.username, program.password, program.database, program.protocol, program.host, program.port)
+addressScrapper(program.username, program.password, program.database, program.protocol, program.host, program.port, program.log)
 
-function addressScrapper (username, password, dbLocation, protocol, host, port) {
+function addressScrapper (username, password, dbLocation, protocol, host, port, logLevel) {
 
   host = initOption(host, '127.0.0.1')
   port = initOption(port, '8332')
@@ -40,8 +41,16 @@ function addressScrapper (username, password, dbLocation, protocol, host, port) 
   }
 
   let rpc = new RpcClient(config)
-  initDatabase(dbLocation)
-    .then((db) => exploreBlockchain(rpc, db))
+  let database = new Database({
+    log: logLevel,
+    dbLocation: dbLocation
+  })
+
+  database.init()
+    .then((db) => {
+      let chainExplorer = new ChainExplorer(logLevel, rpc, db)
+      return chainExplorer.explore()
+    })
     .catch((err) => console.error(err))
     .then(() => process.exit())
 }

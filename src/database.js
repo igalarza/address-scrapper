@@ -1,35 +1,44 @@
 
-const loki = require('lokijs')
+const Loki = require('lokijs')
 const lfsa = require('lokijs/src/loki-fs-structured-adapter.js')
 
-function initDatabase(dbLocation) {
-  console.log('initDatabase')
-  return new Promise((resolve, reject) => {
+class Database {
 
-    let adapter = new lfsa()
-    let db = new loki(dbLocation, {
-      adapter : adapter,
-      autoload: true,
-      autoloadCallback: databaseInitialize,
-      autosave: true,
-      autosaveInterval: 4000
+  constructor (config) {
+    this.log = config.log
+    this.dbLocation = config.dbLocation
+  }
+
+  init () {
+    if (this.log > 2) console.log('init database')
+
+    return new Promise((resolve, reject) => {
+      let adapter = new lfsa()
+      let that = this
+      this.db = new Loki(this.dbLocation, {
+        adapter : adapter,
+        autoload: true,
+        autoloadCallback: initCallback,
+        autosave: true,
+        autosaveInterval: 4000
+      })
+
+      function initCallback () {
+        if (that.log > 2)  console.log('init database callback')
+        // Init addresses collection
+        let addresses = that.db.getCollection('addresses')
+        if (addresses == null) {
+          that.db.addCollection('addresses', {unique: ['address']})
+        }
+        // Init blocks collection
+        let blocks = that.db.getCollection('blocks')
+        if (blocks == null) {
+          that.db.addCollection('blocks')
+        }
+        resolve(that.db)
+      }
     })
-
-    function databaseInitialize () {
-      console.log('databaseInitialize')
-      // Init addresses collection
-      let addresses = db.getCollection('addresses')
-      if (addresses == null) {
-        db.addCollection('addresses', {unique: ['address']})
-      }
-      // Init blocks collection
-      let blocks = db.getCollection('blocks')
-      if (blocks == null) {
-        db.addCollection('blocks')
-      }
-      resolve(db)
-    }
-  })
+  }
 }
 
-module.exports = initDatabase
+module.exports = Database
