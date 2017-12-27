@@ -10,7 +10,6 @@ describe("Database object test suite", function() {
     // Clean up
     fs.unlinkSync(dbLocation)
     fs.unlinkSync(dbLocation + '.0')
-    fs.unlinkSync(dbLocation + '.1')
   });
 
   it('checks if the database inits properly (integration test with lokijs)', function(done) {
@@ -21,9 +20,7 @@ describe("Database object test suite", function() {
         expect(db).toBeDefined()
         expect(fs.existsSync(dbLocation)).toBeTruthy()
         expect(fs.existsSync(dbLocation + '.0')).toBeTruthy()
-        expect(fs.existsSync(dbLocation + '.1')).toBeTruthy()
 
-        expect(db.getCollection('blocks')).toBeDefined()
         expect(db.getCollection('addresses')).toBeDefined()
 
         db.saveDatabase(function() {

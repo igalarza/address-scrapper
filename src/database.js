@@ -28,16 +28,12 @@ class Database {
         // Init addresses collection
         let addresses = that.db.getCollection('addresses')
         if (addresses == null) {
-          that.db.addCollection('addresses', {unique: ['address']})
+          that.db.addCollection('addresses', {
+            unique: ['address'],
+            index: ['lastSeen']
+          })
         }
-        // Init blocks collection
-        let blocks = that.db.getCollection('blocks')
-        if (blocks == null) {
-          that.db.addCollection('blocks')
-        }
-        that.db.saveDatabase(function() {
-          resolve(that.db)
-        })
+        resolve(that.db)
       }
     })
   }
