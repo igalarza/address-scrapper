@@ -17,13 +17,12 @@ describe("Database object test suite", function() {
 
     database.init()
       .then((db) => {
-        expect(db).toBeDefined()
-        expect(fs.existsSync(dbLocation)).toBeTruthy()
-        expect(fs.existsSync(dbLocation + '.0')).toBeTruthy()
-
-        expect(db.getCollection('addresses')).toBeDefined()
-
         db.saveDatabase(function() {
+          expect(db).toBeDefined()
+          expect(fs.existsSync(dbLocation)).toBeTruthy()
+          expect(fs.existsSync(dbLocation + '.0')).toBeTruthy()
+
+          expect(db.getCollection('addresses')).toBeDefined()
           done()
         })
       })

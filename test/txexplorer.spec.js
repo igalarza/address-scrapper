@@ -4,7 +4,7 @@ const mocks = require('./mocks')
 
 describe('txexplorer test suite', function() {
 
-  let txExplorer = new TransactionExplorer(3, mocks.rpc, mocks.collection)
+  let txExplorer = new TransactionExplorer(3, mocks.rpc, 1, mocks.collection)
 
   it('checks if iterateTransactions works with valid input', function(done) {
 
