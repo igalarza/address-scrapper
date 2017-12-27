@@ -16,24 +16,18 @@ class BlockExplorer {
         resolve('All blocks explored.')
       } else {
 
-        if (this.log > 2) console.log('iterateBlocks. currentBlock: ' + currentBlock)
+        if (this.log > 1) console.log('iterateBlocks. currentBlock: ' + currentBlock)
 
         let addresses = this.db.getCollection('addresses')
-        let txExplorer = new TransactionExplorer(this.log, this.rpc, addresses)
+        let txExplorer = new TransactionExplorer(this.log, this.rpc, currentBlock, addresses)
 
         this.getBlockInfo(currentBlock)
-          .then((info) => this.persistBlock(info))
           .then((info) => txExplorer.iterateTransactions(info.tx, 0))
           .then(() => this.iterateBlocks(++currentBlock, blockCount))
           .then(() => resolve())
           .catch((err) => reject(err))
       }
     })
-  }
-
-  persistBlock (info) {
-    this.db.getCollection('blocks').insert(info)
-    return Promise.resolve(info)
   }
 
   getBlockInfo (height) {

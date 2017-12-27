@@ -11,9 +11,9 @@ class ChainExplorer {
 
   explore () {
 
-    let blocks = this.db.getCollection('blocks')
+    let addresses = this.db.getCollection('addresses')
     let allBlocksExplored = false
-    let lastExploredBlock = blocks.count()
+    let lastExploredBlock = this.getLastExploredBlock(addresses)
     if (this.log > 2) console.log('lastExploredBlock: ' + lastExploredBlock)
 
     let blockExplorer = new BlockExplorer({
@@ -24,6 +24,15 @@ class ChainExplorer {
 
     return this.getBlockCount()
         .then((blockCount) => blockExplorer.iterateBlocks(++lastExploredBlock, blockCount))
+  }
+
+  getLastExploredBlock (collection) {
+    let lastExploredBlock = collection.max('lastSeen')
+    if (Number.isInteger(lastExploredBlock)) {
+      return lastExploredBlock
+    } else {
+      return 0
+    }
   }
 
   getBlockCount () {
