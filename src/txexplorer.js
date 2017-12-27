@@ -49,7 +49,7 @@ class TransactionExplorer {
     return new Promise((resolve, reject) => {
       this.rpc.getRawTransaction(txId, 1, function (err, res) {
         if (err) {
-          reject('Error: ' + JSON.stringify(err))
+          reject('Error: ' + err)
         } else {
           resolve(res.result)
         }

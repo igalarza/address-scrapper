@@ -4,9 +4,9 @@ const lfsa = require('lokijs/src/loki-fs-structured-adapter.js')
 
 class Database {
 
-  constructor (config) {
-    this.log = config.log
-    this.dbLocation = config.dbLocation
+  constructor (logLevel, dbLocation) {
+    this.log = logLevel
+    this.dbLocation = dbLocation
   }
 
   init () {
@@ -35,7 +35,9 @@ class Database {
         if (blocks == null) {
           that.db.addCollection('blocks')
         }
-        resolve(that.db)
+        that.db.saveDatabase(function() {
+          resolve(that.db)
+        })
       }
     })
   }
