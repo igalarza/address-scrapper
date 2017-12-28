@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // External libraries
-const bitcoin = require('bitcoinjs-lib')
 const RpcClient = require('bitcoind-rpc')
 const program = require('commander')
 
