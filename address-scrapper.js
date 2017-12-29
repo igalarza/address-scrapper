@@ -44,11 +44,31 @@ function addressScrapper (username, password, dbLocation, protocol, host, port, 
 
   database.init()
     .then((db) => {
+      initProcessEvents(db)
       let chainExplorer = new ChainExplorer(logLevel, rpc, db)
       return chainExplorer.explore()
     })
     .catch((err) => console.error(err))
     .then(() => process.exit())
+}
+
+function initProcessEvents (db) {
+  if (process.platform === "win32") {
+    let rl = require("readline").createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+
+    rl.on("SIGINT", function () {
+      process.emit("SIGINT")
+    })
+  }
+
+  process.on('SIGINT', function () {
+    console.log('Closing gracefully...')
+    db.saveDatabase()
+    process.exit()
+  })
 }
 
 function initOption (value, defaultValue) {
