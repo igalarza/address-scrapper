@@ -23,7 +23,7 @@ class ChainExplorer {
     })
 
     return this.getBlockCount()
-        .then((blockCount) => blockExplorer.iterateBlocks(++lastExploredBlock, blockCount))
+        .then((blockCount) => blockExplorer.iterateBlocks(lastExploredBlock++, blockCount))
   }
 
   getLastExploredBlock (collection) {
@@ -31,7 +31,8 @@ class ChainExplorer {
     if (Number.isInteger(lastExploredBlock)) {
       return lastExploredBlock
     } else {
-      return 0
+      // First block
+      return 1
     }
   }
 
