@@ -49,7 +49,11 @@ function addressScrapper (username, password, dbLocation, protocol, host, port, 
       return chainExplorer.explore()
     })
     .catch((err) => console.error(err))
-    .then(() => process.exit())
+    .then(() => {
+      database.get().saveDatabase(function() {
+        process.exit()
+      })
+    })
 }
 
 function initProcessEvents (db) {
@@ -66,8 +70,9 @@ function initProcessEvents (db) {
 
   process.on('SIGINT', function () {
     console.log('Closing gracefully...')
-    db.saveDatabase()
-    process.exit()
+    db.saveDatabase(function() {
+      process.exit()
+    })
   })
 }
 
