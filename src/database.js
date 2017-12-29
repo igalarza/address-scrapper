@@ -9,6 +9,10 @@ class Database {
     this.dbLocation = dbLocation
   }
 
+  get () {
+    return this.db
+  }
+
   init () {
     if (this.log > 2) console.log('init database')
 
