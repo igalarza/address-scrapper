@@ -17,9 +17,7 @@ class BlockExplorer {
       } else {
 
         if (this.log > 1) console.log('iterateBlocks. currentBlock: ' + currentBlock)
-
-        let addresses = this.db.getCollection('addresses')
-        let txExplorer = new TransactionExplorer(this.log, this.rpc, currentBlock, addresses)
+        let txExplorer = new TransactionExplorer(this.log, this.rpc, currentBlock, this.db)
 
         this.getBlockInfo(currentBlock)
           .then((info) => txExplorer.iterateTransactions(info.tx, 0))
