@@ -44,8 +44,10 @@ You can run it as a command:
 
 ## TODO
 
+- [ ] Close the database properly when the process is killed or an exception is raised
+- [ ] Add jsdoc documentation
 - [ ] Calculate balances properly
-- [ ] Wait for the next block when we have explored all blocks instead of closing the process.
+- [ ] Wait for the next block when we have explored all blocks instead of closing the process
 - [ ] Refactor persistence layer to allow more databases
 - [x] Add some tests
 - [x] Don't store blocks
