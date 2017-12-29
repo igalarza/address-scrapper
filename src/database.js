@@ -33,6 +33,13 @@ class Database {
             index: ['lastSeen']
           })
         }
+        // Init utxo collection
+        let utxoset = that.db.getCollection('utxoset')
+        if (utxoset == null) {
+          that.db.addCollection('utxoset', {
+            unique: ['txid']
+          })
+        }
         resolve(that.db)
       }
     })
