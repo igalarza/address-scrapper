@@ -8,19 +8,23 @@ class TransactionExplorer {
     this.rpc = rpc
     this.currentBlock = currentBlock
     this.addressList = db.getCollection('addresses')
-    this.parser = new AddressParser(logLevel, db.getCollection('utxoset'))
+    this.utxoSet = db.getCollection('utxoset')
+    this.parser = new AddressParser(logLevel, this.utxoSet)
   }
 
   iterateTransactions (txArray, currentTx) {
+
     return new Promise((resolve, reject) => {
+
       if (currentTx >= txArray.length) {
         if (this.log > 2) console.log('All transactions explored.')
         resolve()
+
       } else {
         if (this.log > 2) console.log('iterateTransactions. currentTx (' + currentTx + '): ' + txArray[currentTx])
         this.getTransactionInfo(txArray[currentTx])
-          .then((info) => this.iterateInputs(info))
           .then((info) => this.iterateOutputs(info))
+          .then((info) => this.iterateInputs(info))
           .then(() => this.iterateTransactions(txArray, ++currentTx))
           .then(() => resolve())
           .catch((err) => reject(err))
@@ -59,18 +63,17 @@ class TransactionExplorer {
   persistAddress (addressObj) {
     let persistedAddress = this.addressList.by('address', addressObj.address)
     if (typeof persistedAddress === 'undefined') {
-      if (this.log > 1) console.log('Inserted new address: ' + JSON.stringify(addressObj))
+      if (this.log > 1) console.log('Inserted new address: ' + addressObj.address)
       this.addressList.insert(addressObj)
     } else {
-      if (this.log > 2) console.log('Updating address: ' + JSON.stringify(persistedAddress))
-      if (this.log > 2) console.log('Updating address: ' + addressObj.address)
-      persistedAddress.received += addressObj.received
-      persistedAddress.spent += addressObj.spent
-      persistedAddress.unspent = persistedAddress.received - persistedAddress.spent
+      if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
+      persistedAddress.lastSeen = addressObj.lastSeen
+      persistedAddress.received = round(Number(persistedAddress.received) + Number(addressObj.received), 6)
+      persistedAddress.spent = round(Number(persistedAddress.spent) + Number(addressObj.spent), 6)
+      persistedAddress.unspent = round(Number(persistedAddress.received) - Number(persistedAddress.spent), 6)
       persistedAddress.txs = persistedAddress.txs.concat(addressObj.txs)
       persistedAddress.signatures = persistedAddress.signatures.concat(addressObj.signatures)
-      persistedAddress.lastSeen = addressObj.lastSeen
-      if (this.log > 1) console.log('Address updated: ' + JSON.stringify(persistedAddress))
+      if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
       this.addressList.update(persistedAddress)
     }
   }
@@ -89,6 +92,10 @@ class TransactionExplorer {
       })
     })
   }
+}
+
+function round (value, decimals) {
+  return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals)
 }
 
 module.exports = TransactionExplorer;

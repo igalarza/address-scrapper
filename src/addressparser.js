@@ -1,6 +1,4 @@
 
-const bitcoinjs = require('bitcoinjs-lib')
-
 class AddressParser {
 
   constructor (logLevel, utxoset) {
@@ -10,19 +8,23 @@ class AddressParser {
 
   parseOutput (blockHeight, tx, output) {
     if (this.log > 2) console.log('parseOutput: ' + JSON.stringify(output))
-    return output.scriptPubKey.addresses.map((address) => {
-      this.updateUtxoSet(tx, output, address)
-      return {
-        address: address,
-        firstSeen: blockHeight,
-        lastSeen: blockHeight,
-        received: output.value,
-        spent: 0,
-        unspent: output.value,
-        txs: [tx.txid],
-        signatures: []
-      }
-    })
+    if (typeof output.scriptPubKey.addresses === 'undefined') {
+      return []
+    } else {
+      return output.scriptPubKey.addresses.map((address) => {
+        this.updateUtxoSet(tx, output, address)
+        return {
+          address: address,
+          firstSeen: blockHeight,
+          lastSeen: blockHeight,
+          received: output.value,
+          spent: 0,
+          unspent: output.value,
+          txs: [tx.txid],
+          signatures: []
+        }
+      })
+    }
   }
 
   parseInput (blockHeight, tx, input) {
@@ -30,9 +32,14 @@ class AddressParser {
     let utxo = this.utxoSet.by('txid', input.txid)
     if (typeof utxo === 'undefined') {
       console.log('utxo not found for this transaction id: ' + input.txid)
-      process.exit()
+      process.kill(process.pid, 'SIGINT')
     }
     let utxoObject = utxo.outputs[input.vout]
+    if (utxoObject.spent === true) {
+      console.log('utxo already spent?: ' + utxoObject)
+      console.log(input)
+      process.kill(process.pid, 'SIGINT')
+    }
     if (this.log > 3) console.log('utxo: ' + JSON.stringify(utxo))
     let addressObject = {
       address: utxoObject.address,
@@ -45,9 +52,16 @@ class AddressParser {
       signatures: [input.scriptSig.hex]
     }
     if (this.log > 3) console.log('addressObject: ' + JSON.stringify(addressObject))
-    utxo.outputs[input.vout].spent = true
-    // TODO Remove UTXO if all vouts are spent
+
     return addressObject
+  }
+
+  pruneUtxoSet (input, utxo) {
+    utxo.outputs[input.vout].spent = true
+    let allSpent = utxo.outputs.reduce((acc, current) => acc && current.spent)
+    if (allSpent) {
+      this.utxoSet.remove(utxo)
+    }
   }
 
   updateUtxoSet (tx, output, address) {
@@ -57,7 +71,8 @@ class AddressParser {
         txid: tx.txid,
         outputs: [{
           value: output.value,
-          address: address
+          address: address,
+          spent: false
         }]
       }
       if (this.log > 2) console.log('new utxo: ' + JSON.stringify(utxo))
@@ -65,7 +80,8 @@ class AddressParser {
     } else {
       utxo.outputs.push({
         value: output.value,
-        address: address
+        address: address,
+        spent: false
       })
       if (this.log > 2) console.log('update utxo: ' + JSON.stringify(utxo))
       this.utxoSet.update(utxo)
