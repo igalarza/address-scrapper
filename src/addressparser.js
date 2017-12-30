@@ -52,13 +52,14 @@ class AddressParser {
       signatures: [input.scriptSig.hex]
     }
     if (this.log > 3) console.log('addressObject: ' + JSON.stringify(addressObject))
-
+    utxo.outputs[input.vout].spent = true
+    this.utxoSet.update(utxo)
+    this.pruneUtxoSet(input, utxo)
     return addressObject
   }
 
   pruneUtxoSet (input, utxo) {
-    utxo.outputs[input.vout].spent = true
-    let allSpent = utxo.outputs.reduce((acc, current) => acc && current.spent)
+    let allSpent = utxo.outputs.reduce((acc, current) => current.spent && acc, true)
     if (allSpent) {
       this.utxoSet.remove(utxo)
     }
