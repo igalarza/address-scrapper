@@ -40,7 +40,7 @@ describe("MongoDB object test suite", function() {
 
   it('checks insertAddress and findAddress methods', function(done) {
 
-    let addressObj = new Address({ address: 'testAddress' })
+    let addressObj = Address.getInstance({ address: 'testAddress' })
 
     db.connect(url, dbName)
       .then(() => db.init())
@@ -54,7 +54,7 @@ describe("MongoDB object test suite", function() {
 
   it('checks insertUtxo and findUtxo methods', function(done) {
 
-    let utxo = new Utxo({
+    let utxo = Utxo.getInstance({
       txid: 'testId',
       outputs: []
     })
