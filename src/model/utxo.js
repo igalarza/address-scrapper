@@ -5,8 +5,8 @@ class Utxo {
 
   constructor (utxoObj) {
     if (typeof utxoObj !== 'undefined') {
-      this._txid = utxoObj.txid;
-      this._outputs = utxoObj.outputs
+      this.txid = utxoObj.txid;
+      this.outputs = utxoObj.outputs
     }
   }
 
@@ -29,9 +29,6 @@ class Utxo {
   isSpent () {
     return this.outputs.reduce((acc, current) => current.spent && acc, true)
   }
-
-  get txid () { return this._txid }
-  get outputs () { return this._outputs }
 }
 
 module.exports = Utxo
