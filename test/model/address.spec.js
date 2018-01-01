@@ -5,7 +5,8 @@ describe("Address object test suite", function() {
 
   let data1 = {
     address: 'test',
-    blockHeight: 1,
+    firstSeen: 1,
+    lastSeen: 1,
     received: 10928346.982734,
     spent: 324.874650,
     txs: ['tx1','tx2'],
@@ -14,7 +15,8 @@ describe("Address object test suite", function() {
 
   let data2 = {
     address: 'test',
-    blockHeight: 5,
+    firstSeen: 1,
+    lastSeen: 5,
     received: 0,
     spent: 10062310.342536,
     txs: ['tx3'],
@@ -23,7 +25,7 @@ describe("Address object test suite", function() {
 
   it('checks constructor', function() {
 
-    let addressObj = new Address(data1)
+    let addressObj = Address.getInstance(data1)
 
     expect(addressObj).toBeDefined()
     expect(addressObj.address).toBe('test')
@@ -31,13 +33,13 @@ describe("Address object test suite", function() {
   })
 
   it('checks isDefined method', function() {
-    let addressObj = new Address({})
+    let addressObj = Address.getInstance({})
     expect(addressObj.isDefined()).toBe(false)
   })
 
   it('checks update method', function() {
 
-    let addressObj = new Address(data1)
+    let addressObj = Address.getInstance(data1)
     addressObj.update(data2)
 
     expect(addressObj.lastSeen).toBe(5)

@@ -3,7 +3,7 @@ const Utxo = require('../../src/model/utxo')
 
 describe("Utxo object test suite", function() {
 
-  let utxo = new Utxo({
+  let utxo = Utxo.getInstance({
     txid: 'testId',
     outputs: [{
       value: 5.234512,

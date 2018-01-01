@@ -3,11 +3,17 @@
 
 class Utxo {
 
-  constructor (utxoObj) {
+  static getInstance (utxoObj) {
     if (typeof utxoObj !== 'undefined') {
-      this.txid = utxoObj.txid;
-      this.outputs = utxoObj.outputs
+      return new Utxo(utxoObj.txid, utxoObj.outputs)
+    } else {
+      return null
     }
+  }
+
+  constructor (txid, outputs) {
+    this.txid = txid
+    this.outputs = outputs
   }
 
   isDefined () {
