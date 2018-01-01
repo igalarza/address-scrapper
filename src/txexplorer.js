@@ -1,5 +1,6 @@
 
 const AddressParser = require('./addressparser')
+const Address = require('./model/address')
 
 class TransactionExplorer {
 
@@ -59,22 +60,16 @@ class TransactionExplorer {
   }
 
 
-
   persistAddress (addressObj) {
-    let persistedAddress = this.addressList.by('address', addressObj.address)
-    if (typeof persistedAddress === 'undefined') {
+    let persistedAddress = new Address(this.addressList.by('address', addressObj.address))
+    if (persistedAddress.isDefined()) {
+      if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
+      addressObj.merge(persistedAddress)
+      if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
+      this.addressList.update(persistedAddress)      
+    } else {
       if (this.log > 1) console.log('Inserted new address: ' + addressObj.address)
       this.addressList.insert(addressObj)
-    } else {
-      if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
-      persistedAddress.lastSeen = addressObj.lastSeen
-      persistedAddress.received = round(Number(persistedAddress.received) + Number(addressObj.received), 6)
-      persistedAddress.spent = round(Number(persistedAddress.spent) + Number(addressObj.spent), 6)
-      persistedAddress.unspent = round(Number(persistedAddress.received) - Number(persistedAddress.spent), 6)
-      persistedAddress.txs = persistedAddress.txs.concat(addressObj.txs)
-      persistedAddress.signatures = persistedAddress.signatures.concat(addressObj.signatures)
-      if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
-      this.addressList.update(persistedAddress)
     }
   }
 
@@ -92,10 +87,6 @@ class TransactionExplorer {
       })
     })
   }
-}
-
-function round (value, decimals) {
-  return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals)
 }
 
 module.exports = TransactionExplorer;

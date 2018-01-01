@@ -2,7 +2,7 @@
 const TransactionExplorer = require('../src/txexplorer')
 const mocks = require('./mocks')
 
-describe('txexplorer test suite', function() {
+xdescribe('txexplorer test suite', function() {
 
   let txExplorer = new TransactionExplorer(3, mocks.rpc, 1, mocks.collection)
 
