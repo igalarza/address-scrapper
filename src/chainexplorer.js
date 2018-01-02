@@ -11,19 +11,22 @@ class ChainExplorer {
 
   explore () {
 
-    let addresses = this.db.getCollection('addresses')
     let allBlocksExplored = false
-    let lastExploredBlock = this.getLastExploredBlock(addresses)
-    if (this.log > 2) console.log('lastExploredBlock: ' + lastExploredBlock)
-
     let blockExplorer = new BlockExplorer({
       log: this.log,
       rpc: this.rpc,
       db: this.db
     })
+    let lastExploredBlock = 1
 
-    return this.getBlockCount()
-        .then((blockCount) => blockExplorer.iterateBlocks(lastExploredBlock++, blockCount))
+    return this.db.getLastExploredBlock()
+      .then((lastBlock) => {
+        lastExploredBlock = lastBlock
+        if (this.log > 2) console.log('lastExploredBlock: ' + lastExploredBlock)
+        return this.getBlockCount()
+      })
+      .then((blockCount) => blockExplorer.iterateBlocks(lastExploredBlock++, blockCount))
+      .catch((err) => Promise.reject(err))
   }
 
   getLastExploredBlock (collection) {

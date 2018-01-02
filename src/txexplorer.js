@@ -8,9 +8,8 @@ class TransactionExplorer {
     this.log = logLevel
     this.rpc = rpc
     this.currentBlock = currentBlock
-    this.addressList = db.getCollection('addresses')
-    this.utxoSet = db.getCollection('utxoset')
-    this.parser = new AddressParser(logLevel, this.utxoSet)
+    this.db = db
+    this.parser = new AddressParser(logLevel, this.db)
   }
 
   iterateTransactions (txArray, currentTx) {
@@ -34,43 +33,47 @@ class TransactionExplorer {
   }
 
   iterateInputs (tx) {
-    return new Promise((resolve, reject) => {
-      tx.vin.map((input) => {
-        if (typeof input.coinbase !== 'undefined') {
-          resolve(tx)
-        } else {
-          let address = this.parser.parseInput(this.currentBlock, tx, input)
-          if (this.log > 2) console.log('iterateInputs. addresses: ' + JSON.stringify(address))
-          this.persistAddress(address)
-        }
-      })
-      resolve(tx)
+    let inputPromises = tx.vin.map((input) => {
+      if (typeof input.coinbase !== 'undefined') {
+        return Promise.resolve(tx)
+      } else {
+        let address = this.parser.parseInput(this.currentBlock, tx, input)
+        if (this.log > 2) console.log('iterateInputs. addresses: ' + JSON.stringify(address))
+        this.persistAddress(address)
+          .then(() => Promise.resolve(tx))
+      }
     })
+    return Promise.all(inputPromises)
+      .then(() => Promise.resolve(tx))
   }
 
   iterateOutputs (tx) {
-    return new Promise((resolve, reject) => {
-      tx.vout.map((output) => {
-        let addresses = this.parser.parseOutput(this.currentBlock, tx, output)
-        if (this.log > 2) console.log('iterateOutputs. addresses: ' + JSON.stringify(addresses))
-        addresses.map((address) => this.persistAddress(address))
-      })
-      resolve(tx)
+    let outputPromises = tx.vout.map((output) => {
+      return this.parser.parseOutput(this.currentBlock, tx, output)
+        .then((addresses) => {
+          if (this.log > 2) console.log('iterateOutputs. addresses: ' + JSON.stringify(addresses))
+          let addressPromises = addresses.map((address) => this.persistAddress(address))
+          return Promise.all(addressPromises)
+            .then(() => Promise.resolve(tx))
+        })
     })
+    return Promise.all(outputPromises)
+      .then(() => Promise.resolve(tx))
   }
 
-
   persistAddress (addressObj) {
-    let persistedAddress = new Address(this.addressList.by('address', addressObj.address))
-    if (persistedAddress.isDefined()) {
-      if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
-      addressObj.merge(persistedAddress)
-      if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
-      this.addressList.update(persistedAddress)      
-    } else {
-      if (this.log > 1) console.log('Inserted new address: ' + addressObj.address)
-      this.addressList.insert(addressObj)
-    }
+    return this.db.findAddress(addressObj.address)
+      .then((persistedAddress) => {
+        if (persistedAddress.isDefined()) {
+          if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
+          persistedAddress.update(addressObj)
+          if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
+          this.db.updateAddress(persistedAddress)
+        } else {
+          if (this.log > 1) console.log('Inserted new address: ' + addressObj.address)
+          this.db.insertAddress(addressObj)
+        }
+      })
   }
 
   getTransactionInfo (txId) {
