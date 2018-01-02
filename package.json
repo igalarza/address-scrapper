@@ -2,7 +2,7 @@
   "name": "address-scrapper",
   "version": "0.0.1",
   "description": "Extracts bitcoin addresses from the blockchain and stores them.",
-  "license": "GPL3.0",
+  "license": "GPL-3.0-only",
   "main": "src/main",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
   "dependencies": {
     "bitcoinjs-lib": "3.3.1",
     "commander": "^2.12.2",
-    "lokijs": "^1.5.1"
+    "mongodb": "^3.0.1"
   },
   "devDependencies": {
     "grunt": "^1.0.1",
