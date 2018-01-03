@@ -37,10 +37,14 @@ class TransactionExplorer {
       if (typeof input.coinbase !== 'undefined') {
         return Promise.resolve(tx)
       } else {
-        let address = this.parser.parseInput(this.currentBlock, tx, input)
-        if (this.log > 2) console.log('iterateInputs. addresses: ' + JSON.stringify(address))
-        this.persistAddress(address)
-          .then(() => Promise.resolve(tx))
+        this.parser.parseInput(this.currentBlock, tx, input)
+          .then((address) => {
+            if (this.log > 2) console.log('iterateInputs. addresses: ' + JSON.stringify(address))
+            if (address.isDefined()) {
+              this.persistAddress(address)
+                .then(() => Promise.resolve(tx))
+            }
+          })
       }
     })
     return Promise.all(inputPromises)
@@ -52,7 +56,12 @@ class TransactionExplorer {
       return this.parser.parseOutput(this.currentBlock, tx, output)
         .then((addresses) => {
           if (this.log > 2) console.log('iterateOutputs. addresses: ' + JSON.stringify(addresses))
-          let addressPromises = addresses.map((address) => this.persistAddress(address))
+          let addressPromises = addresses.map((address) => {
+            if (address.isDefined()) {
+              this.persistAddress(address)
+            }
+            return Promise.resolve()
+          })
           return Promise.all(addressPromises)
             .then(() => Promise.resolve(tx))
         })
