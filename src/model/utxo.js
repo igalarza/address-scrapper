@@ -7,7 +7,7 @@ class Utxo {
     if (typeof utxoObj !== 'undefined') {
       return new Utxo(utxoObj.txid, utxoObj.outputs)
     } else {
-      return null
+      return new Utxo()
     }
   }
 

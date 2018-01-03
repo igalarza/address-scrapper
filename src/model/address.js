@@ -15,7 +15,7 @@ class Address {
       address.firstSeen = addressObj.firstSeen
       return address
     } else {
-      return null
+      return new Address()
     }
   }
 

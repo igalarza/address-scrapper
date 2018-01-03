@@ -80,7 +80,7 @@ class MongoDB {
   updateAddress (addressObj) {
     if (this.log > 2) console.log('MongoDB updateAddress method')
     let addresses = this.db.collection('addresses')
-    return addresses.updateOne({address: addressObj.address}, addressObj, {w: 1, j:true})
+    return addresses.replaceOne({address: addressObj.address}, addressObj, {w: 1, j:true})
   }
 
   findAddress (address) {
@@ -88,7 +88,7 @@ class MongoDB {
     let addresses = this.db.collection('addresses')
     return addresses.findOne({address: address})
       .then((addressObj) => Promise.resolve(Address.getInstance(addressObj)))
-      .catch((err) => Promise.resolve(Address.getInstance({})))
+      .catch((err) => Promise.resolve(Address.getInstance()))
   }
 
   insertUtxo (utxo) {
@@ -108,7 +108,7 @@ class MongoDB {
     let utxoset = this.db.collection('utxoset')
     return utxoset.findOne({txid: txid})
       .then((utxo) => Promise.resolve(Utxo.getInstance(utxo)))
-      .catch((err) => Promise.resolve(Utxo.getInstance({})))
+      .catch((err) => Promise.resolve(Utxo.getInstance()))
   }
 
   removeUtxo (txid) {
