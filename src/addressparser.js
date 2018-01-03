@@ -15,8 +15,16 @@ class AddressParser {
       return Promise.resolve([])
     } else {
       let addressPromises = output.scriptPubKey.addresses.map((address) => {
-        return this.updateUtxoSet(tx, output, address)
-          .then(() => Promise.resolve(new Address(address, blockHeight, output.value, 0, [tx.txid], [])))
+        return this.db.findAddress(address)
+          .then((addressObj) => {
+            if (addressObj.isDefined() && addressObj.txs.includes(tx.txid)) {
+              if (this.log > 1) console.log('output already parsed!')
+              return Promise.resolve(Address.getInstance())
+            } else {
+              return this.updateUtxoSet(tx, output, address)
+                .then(() => Promise.resolve(new Address(address, blockHeight, output.value, 0, [tx.txid], [])))
+            }
+          })
       })
       return Promise.all(addressPromises)
     }
