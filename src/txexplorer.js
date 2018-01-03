@@ -43,6 +43,7 @@ class TransactionExplorer {
             if (address.isDefined()) {
               this.persistAddress(address)
                 .then(() => Promise.resolve(tx))
+                .catch((err) => Promise.reject(err))
             }
           })
       }
@@ -58,7 +59,9 @@ class TransactionExplorer {
           if (this.log > 2) console.log('iterateOutputs. addresses: ' + JSON.stringify(addresses))
           let addressPromises = addresses.map((address) => {
             if (address.isDefined()) {
-              this.persistAddress(address)
+              return this.persistAddress(address)
+                .then(() => Promise.resolve(tx))
+                .catch((err) => Promise.reject(err))
             }
             return Promise.resolve()
           })
@@ -75,14 +78,15 @@ class TransactionExplorer {
       .then((persistedAddress) => {
         if (persistedAddress.isDefined()) {
           if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
-          persistedAddress.update(addressObj)
+          return persistedAddress.update(addressObj)
           if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
-          this.db.updateAddress(persistedAddress)
+          return this.db.updateAddress(persistedAddress)
         } else {
           if (this.log > 1) console.log('Inserted new address: ' + addressObj.address)
-          this.db.insertAddress(addressObj)
+          return this.db.insertAddress(addressObj)
         }
       })
+      .catch((err) => Promise.reject('Error persisting address! ' + err))
   }
 
   getTransactionInfo (txId) {

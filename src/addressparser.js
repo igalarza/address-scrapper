@@ -34,25 +34,25 @@ class AddressParser {
     if (this.log > 2) console.log('parseInput: ' + JSON.stringify(input))
     return this.db.findUtxo(input.txid)
       .then((utxo) => {
-        if (typeof utxo === 'undefined') {
+        if (!utxo.isDefined()) {
           console.log('utxo not found for this transaction id: ' + input.txid)
           process.kill(process.pid, 'SIGINT')
         }
-
-        let utxoObject = utxo.outputs[input.vout]
-        this.checkUtxoSet(utxoObject)
-
         if (this.log > 3) console.log('utxo: ' + JSON.stringify(utxo))
-
-        let addressObject = new Address(utxoObject.address, blockHeight, 0, utxoObject.value, [], [input.scriptSig.hex])
-        if (this.log > 3) console.log('addressObject: ' + JSON.stringify(addressObject))
-        utxo.outputs[input.vout].spent = true
-        return this.db.updateUtxo(utxo)
-          .then(() => {
-            this.pruneUtxoSet(utxo)
-            return Promise.resolve(addressObject)
-          })
-          .catch((err) => Promise.reject(err))
+        let utxoObject = utxo.outputs[input.vout]
+        if (this.checkUtxoSet(utxoObject)) {
+          let addressObject = new Address(utxoObject.address, blockHeight, 0, utxoObject.value, [], [input.scriptSig.hex])
+          if (this.log > 3) console.log('addressObject: ' + JSON.stringify(addressObject))
+          utxo.outputs[input.vout].spent = true
+          return this.db.updateUtxo(utxo)
+            .then(() => {
+              this.pruneUtxoSet(utxo)
+              return Promise.resolve(addressObject)
+            })
+            .catch((err) => Promise.reject(err))
+        } else {
+          return Promise.resolve(Address.getInstance())
+        }        
       })
       .catch((err) => Promise.reject(err))
   }
@@ -71,9 +71,11 @@ class AddressParser {
       process.kill(process.pid, 'SIGINT')
 
     } else if (utxoObject.spent === true) {
-      console.log('utxo already spent?: ' + utxoObject)
-      console.log(input)
-      process.kill(process.pid, 'SIGINT')
+      if (this.log > 1) console.log('utxo already spent?: ' + JSON.stringify(utxoObject))
+      return false
+
+    } else {
+      return true
     }
   }
 
