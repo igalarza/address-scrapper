@@ -51,9 +51,9 @@ class MongoDB {
     if (this.log > 2) console.log('MongoDB init method')
     return Promise.all([
       this.db.createCollection('addresses')
-        .then((addresses) => addresses.createIndex('address')),
+        .then((addresses) => addresses.createIndex('address', { unique: true })),
       this.db.createCollection('utxoset')
-        .then((utxoset) => utxoset.createIndex('txid'))
+        .then((utxoset) => utxoset.createIndex('txid', { unique: true }))
     ])
   }
 
@@ -94,6 +94,7 @@ class MongoDB {
   insertUtxo (utxo) {
     if (this.log > 2) console.log('MongoDB insertUtxo method')
     let utxoset = this.db.collection('utxoset')
+
     return utxoset.insertOne(utxo, {w: 1, j:true})
   }
 
