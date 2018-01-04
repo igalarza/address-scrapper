@@ -1,6 +1,7 @@
 
 const AddressParser = require('./addressparser')
 const Address = require('./model/address')
+const promiseMap = require('./util/promiseMap')
 
 class TransactionExplorer {
 
@@ -23,8 +24,8 @@ class TransactionExplorer {
       } else {
         if (this.log > 2) console.log('iterateTransactions. currentTx (' + currentTx + '): ' + txArray[currentTx])
         this.getTransactionInfo(txArray[currentTx])
-          .then((info) => this.iterateOutputs(info))
           .then((info) => this.iterateInputs(info))
+          .then((info) => this.iterateOutputs(info))        
           .then(() => this.iterateTransactions(txArray, ++currentTx))
           .then(() => resolve())
           .catch((err) => reject(err))
@@ -33,44 +34,47 @@ class TransactionExplorer {
   }
 
   iterateInputs (tx) {
-    let inputPromises = tx.vin.map((input) => {
-      if (typeof input.coinbase !== 'undefined') {
-        return Promise.resolve(tx)
-      } else {
-        this.parser.parseInput(this.currentBlock, tx, input)
-          .then((address) => {
-            if (this.log > 2) console.log('iterateInputs. addresses: ' + JSON.stringify(address))
-            if (address.isDefined()) {
-              this.persistAddress(address)
-                .then(() => Promise.resolve(tx))
-                .catch((err) => Promise.reject(err))
-            }
-          })
-      }
-    })
-    return Promise.all(inputPromises)
+    return promiseMap(tx.vin,
+      (input) => {
+        if (typeof input.coinbase !== 'undefined') {
+          return Promise.resolve(tx)
+        } else {
+          return this.parser.parseInput(this.currentBlock, tx, input)
+            .then((address) => {
+              if (this.log > 2) console.log('iterateInputs. address: ' + JSON.stringify(address))
+              if (address.isDefined()) {
+                return this.persistAddress(address)
+                  .then(() => Promise.resolve(tx))
+                  .catch((err) => Promise.reject(err))
+              }
+            })
+        }
+      })
       .then(() => Promise.resolve(tx))
+      .catch((err) => Promise.reject(err))
   }
 
   iterateOutputs (tx) {
-    let outputPromises = tx.vout.map((output) => {
+    return promiseMap(tx.vout, (output) => {
       return this.parser.parseOutput(this.currentBlock, tx, output)
         .then((addresses) => {
           if (this.log > 2) console.log('iterateOutputs. addresses: ' + JSON.stringify(addresses))
           let addressPromises = addresses.map((address) => {
             if (address.isDefined()) {
               return this.persistAddress(address)
-                .then(() => Promise.resolve(tx))
+                .then(() => Promise.resolve())
                 .catch((err) => Promise.reject(err))
+            } else {
+              return Promise.resolve()
             }
-            return Promise.resolve()
           })
           return Promise.all(addressPromises)
             .then(() => Promise.resolve(tx))
+            .catch((err) => Promise.reject(err))
         })
-    })
-    return Promise.all(outputPromises)
+      })
       .then(() => Promise.resolve(tx))
+      .catch((err) => Promise.reject(err))
   }
 
   persistAddress (addressObj) {
@@ -78,7 +82,7 @@ class TransactionExplorer {
       .then((persistedAddress) => {
         if (persistedAddress.isDefined()) {
           if (this.log > 2) console.log('Updating address: ' + persistedAddress.address)
-          return persistedAddress.update(addressObj)
+          persistedAddress.update(addressObj)
           if (this.log > 1) console.log('Address updated: ' + persistedAddress.address)
           return this.db.updateAddress(persistedAddress)
         } else {

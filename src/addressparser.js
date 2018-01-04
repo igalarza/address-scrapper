@@ -1,6 +1,7 @@
 
 const Address = require('./model/address')
 const Utxo = require('./model/utxo')
+const promiseMap = require('./util/promiseMap')
 
 class AddressParser {
 
@@ -14,19 +15,13 @@ class AddressParser {
     if (typeof output.scriptPubKey.addresses === 'undefined') {
       return Promise.resolve([])
     } else {
-      let addressPromises = output.scriptPubKey.addresses.map((address) => {
+      return promiseMap(output.scriptPubKey.addresses, (address) => {
         return this.db.findAddress(address)
           .then((addressObj) => {
-            if (addressObj.isDefined() && addressObj.txs.includes(tx.txid)) {
-              if (this.log > 1) console.log('output already parsed!')
-              return Promise.resolve(Address.getInstance())
-            } else {
-              return this.updateUtxoSet(tx, output, address)
-                .then(() => Promise.resolve(new Address(address, blockHeight, output.value, 0, [tx.txid], [])))
-            }
+            return this.updateUtxoSet(tx, output, address)
+              .then(() => Promise.resolve(new Address(address, blockHeight, output.value, 0, [tx.txid], [])))
           })
       })
-      return Promise.all(addressPromises)
     }
   }
 
@@ -39,6 +34,15 @@ class AddressParser {
           process.kill(process.pid, 'SIGINT')
         }
         if (this.log > 3) console.log('utxo: ' + JSON.stringify(utxo))
+        if (typeof utxo.outputs[input.vout] === 'undefined') {
+          if (this.log > 1) console.log('utxo not found!')
+          if (this.log > 1) console.log(blockHeight)
+          if (this.log > 1) console.log(tx)
+          if (this.log > 1) console.log(input)
+          if (this.log > 1) console.log(utxo)
+          process.kill(process.pid, 'SIGINT')
+          return false
+        }
         let utxoObject = utxo.outputs[input.vout]
         if (this.checkUtxoSet(utxoObject)) {
           let addressObject = new Address(utxoObject.address, blockHeight, 0, utxoObject.value, [], [input.scriptSig.hex])
@@ -51,8 +55,9 @@ class AddressParser {
             })
             .catch((err) => Promise.reject(err))
         } else {
+          if (this.log > 2) console.log('utxo not found for this transaction id: ' + input.txid)
           return Promise.resolve(Address.getInstance())
-        }        
+        }
       })
       .catch((err) => Promise.reject(err))
   }
@@ -60,17 +65,13 @@ class AddressParser {
   pruneUtxoSet (utxo) {
     let allSpent = utxo.outputs.reduce((acc, current) => current.spent && acc, true)
     if (allSpent) {
+      if (this.log > 1) console.log('all outputs spent. txid: ' + utxo.txid)
       this.db.removeUtxo(utxo)
     }
   }
 
   checkUtxoSet (utxoObject) {
-    if (typeof utxoObject === 'undefined') {
-      console.log('utxo not found! vout: ' + input.vout)
-      console.log('tx utxo : ' + utxo)
-      process.kill(process.pid, 'SIGINT')
-
-    } else if (utxoObject.spent === true) {
+    if (utxoObject.spent === true) {
       if (this.log > 1) console.log('utxo already spent?: ' + JSON.stringify(utxoObject))
       return false
 
