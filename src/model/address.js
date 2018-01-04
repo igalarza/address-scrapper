@@ -38,7 +38,7 @@ class Address {
     this.lastSeen = addressObj.lastSeen
     this.received = round(Number(this.received) + Number(addressObj.received), 6)
     this.spent = round(Number(this.spent) + Number(addressObj.spent), 6)
-    this.unspent = round(Number(this.unspent) - Number(addressObj.spent), 6)
+    this.unspent = round(Number(this.received) - Number(this.spent), 6)
     this.txs = this.txs.concat(addressObj.txs)
     this.signatures = this.signatures.concat(addressObj.signatures)
   }
