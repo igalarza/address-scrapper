@@ -13,7 +13,7 @@ The connection with the bitcoin node is made using [bitcoind-rpc](https://github
 
 Command-line arguments are processed using [commander](https://github.com/tj/commander.js)
 
-Persistence layer uses [lokijs](https://github.com/techfort/LokiJS)
+Persistence layer uses [MongoDB](https://github.com/mongodb/node-mongodb-native)
 
 ## Installation
 
@@ -33,22 +33,23 @@ You can run it as a command:
 
     Options:
 
-    -u, --username <username>  The user to authenticate as
-    -p, --password <password>  The user's password
-    -d, --database <file>      The file uri of the database to save the addresses (default: "loki.db")
-    -t, --protocol <protocol>  The protocol used to connect with the Bitcoin node  (default: http)
-    -h, --host <host>          The host where the Bitcoin node is running (default: 127.0.0.1)
-    -r, --port <number>        The port where the Bitcoin rpc service is running (default: 8332)
-    -l, --log <number>         A number indicating the log level (default 0: no log, 1:info, 2: debug, 3:trace)
-    -h, --help                 output usage information
+    -u, --username <username>    The user to authenticate as
+    -p, --password <password>    The user's password
+    -d, --databaseUrl <string>   The url to connect with the MongoDB database (default: "loki.db")
+    -d, --databaseName <string>  The name of the MongoDB database (default: "mongodb://localhost:27017/")
+    -t, --protocol <protocol>    The protocol used to connect with the Bitcoin node  (default: http)
+    -h, --host <host>            The host where the Bitcoin node is running (default: 127.0.0.1)
+    -r, --port <number>          The port where the Bitcoin rpc service is running (default: 8332)
+    -l, --log <number>           A number indicating the log level (default 0: no log, 1:info, 2: debug, 3:trace)
+    -h, --help                   output usage information
 
 ## TODO
 
-- [ ] Close the database properly when the process is killed or an exception is raised
+- [x] Close the database properly when the process is killed or an exception is raised
 - [ ] Add jsdoc documentation
 - [ ] Calculate balances properly
-- [ ] Wait for the next block when we have explored all blocks instead of closing the process
-- [ ] Refactor persistence layer to allow more databases
+- [ ] Wait for the next block when we have explored all blocks instead of killing the process
+- [x] Refactor persistence layer to allow more databases
 - [x] Add some tests
 - [x] Don't store blocks
 - [x] Add more info to the address objects (first seen, last seen, signatures, unspent outputs)
