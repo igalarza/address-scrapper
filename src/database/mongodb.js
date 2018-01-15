@@ -3,8 +3,20 @@ const MongoClient = require('mongodb').MongoClient
 const Address = require('../model/address')
 const Utxo = require('../model/utxo')
 
+/**
+ * Persistence layer implementation with MongoDB. All methods (except
+ * constructor) return a Promise.
+ */
 class MongoDB {
 
+  // TODO Move persistence layer to new github project
+  // TODO Add a mysql/mariadb implementation
+
+  /**
+   * constructor - Creates a MongoDB instance
+   *
+   * @param  {integer} logLevel level of verbosity
+   */
   constructor (logLevel) {
     this.log = logLevel
   }
@@ -38,7 +50,7 @@ class MongoDB {
     if (this.log > 2) console.log('MongoDB exists method')
     return this.db.collections()
       .then((collections) => {
-        if (collections.length === 2) {
+        if (collections.length === 3) {
           return Promise.resolve(true)
         } else {
           return Promise.resolve(false)
@@ -50,11 +62,31 @@ class MongoDB {
   init () {
     if (this.log > 2) console.log('MongoDB init method')
     return Promise.all([
+      this.db.createCollection('status')
+        .then((addresses) => addresses.createIndex('key', { unique: true })),
       this.db.createCollection('addresses')
         .then((addresses) => addresses.createIndex('address', { unique: true })),
       this.db.createCollection('utxoset')
         .then((utxoset) => utxoset.createIndex('txid', { unique: true }))
     ])
+  }
+
+  getStatus (key) {
+    if (this.log > 2) console.log('MongoDB getStatus method')
+    let status = this.db.collection('status')
+    return status.findOne({key: key})
+  }
+
+  setStatus (key, value) {
+    if (this.log > 2) console.log('MongoDB setStatus method')
+    let status = this.db.collection('status')
+    return status.replaceOne(
+      {key: key},
+      {
+        key: key,
+        value: value
+      },
+      {w: 1, j:true, upsert: true})
   }
 
   getLastExploredBlock () {
@@ -125,7 +157,8 @@ class MongoDB {
     if (typeof this.db !== 'undefined') {
       let p1 = this.db.dropCollection('addresses')
       let p2 = this.db.dropCollection('utxoset')
-      return Promise.all([p1, p2])
+      let p3 = this.db.dropCollection('status')
+      return Promise.all([p1, p2, p3])
     } else {
       return Promise.resolve()
     }
