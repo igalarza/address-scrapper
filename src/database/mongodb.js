@@ -72,13 +72,14 @@ class MongoDB {
   }
 
   getStatus (key) {
-    if (this.log > 2) console.log('MongoDB getStatus method')
+    if (this.log > 2) console.log('MongoDB getStatus method. key: ' + key)
     let status = this.db.collection('status')
     return status.findOne({key: key})
+      .then((obj) => obj !== null ? obj.value : null)
   }
 
   setStatus (key, value) {
-    if (this.log > 2) console.log('MongoDB setStatus method')
+    if (this.log > 2) console.log('MongoDB setStatus method. key: ' + key)
     let status = this.db.collection('status')
     return status.replaceOne(
       {key: key},
