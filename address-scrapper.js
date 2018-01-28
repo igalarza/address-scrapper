@@ -54,19 +54,17 @@ function addressScrapper (username, password,
       }
     })
     .then(() => {
-      initProcessEvents(database)
       let chainExplorer = new ChainExplorer(logLevel, rpc, database)
+      initProcessEvents(chainExplorer)
       return chainExplorer.explore()
     })
-    .catch((err) => console.error(err))
-    .then(() => {
-      database.get().saveDatabase(function() {
-        process.exit()
-      })
-    })
+    .then((response) => console.log(response))
+    .catch((err) => console.error(JSON.stringify(err)))
+    .then(() => database.close())
+    .then(() => process.exit())
 }
 
-function initProcessEvents (db) {
+function initProcessEvents (chainExplorer) {
   if (process.platform === "win32") {
     let rl = require("readline").createInterface({
       input: process.stdin,
@@ -79,8 +77,8 @@ function initProcessEvents (db) {
   }
 
   process.on('SIGINT', function () {
-    console.log('Closing gracefully...')
-    db.close().then(() => process.exit())
+    console.log('Sigterm received')
+    chainExplorer.stop()
   })
 }
 
