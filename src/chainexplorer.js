@@ -7,36 +7,34 @@ class ChainExplorer {
     this.log = logLevel
     this.rpc = rpc
     this.db = db
+    this.blockExplorer = new BlockExplorer({
+      log: this.log,
+      rpc: this.rpc,
+      db: this.db
+    })
   }
 
   explore () {
 
     let allBlocksExplored = false
-    let blockExplorer = new BlockExplorer({
-      log: this.log,
-      rpc: this.rpc,
-      db: this.db
-    })
-    let lastExploredBlock = 1
+    let currentBlock = 1
 
-    return this.db.getLastExploredBlock()
-      .then((lastBlock) => {
-        lastExploredBlock = lastBlock
-        if (this.log > 2) console.log('lastExploredBlock: ' + lastExploredBlock)
-        return this.getBlockCount()
+    return this.db.getStatus('lastExploredBlock')
+      .then((lastExploredBlock) => {
+          if (lastExploredBlock !== null) {
+            currentBlock = Number(lastExploredBlock)
+          }
+          if (this.log > 2) console.log('current block: ' + currentBlock)
+          return Promise.resolve()
       })
-      .then((blockCount) => blockExplorer.iterateBlocks(lastExploredBlock++, blockCount))
+      .then(() => this.getBlockCount())
+      .then((blockCount) => this.blockExplorer.iterateBlocks(currentBlock++, blockCount))
+      .then((response) => Promise.resolve(response))
       .catch((err) => Promise.reject(err))
   }
 
-  getLastExploredBlock (collection) {
-    let lastExploredBlock = collection.max('lastSeen')
-    if (Number.isInteger(lastExploredBlock)) {
-      return lastExploredBlock
-    } else {
-      // First block
-      return 1
-    }
+  stop () {
+    this.blockExplorer.stop()
   }
 
   getBlockCount () {

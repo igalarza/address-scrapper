@@ -15,25 +15,26 @@ class TransactionExplorer {
 
   iterateTransactions (txArray, currentTx) {
 
-    return new Promise((resolve, reject) => {
+    if (currentTx >= txArray.length) {
+      if (this.log > 1) console.log('All transactions explored.')
+      return Promise.resolve()
 
-      if (currentTx >= txArray.length) {
-        if (this.log > 2) console.log('All transactions explored.')
-        resolve()
+    } else {
+      if (this.log > 2) console.log('iterateTransactions. currentTx (' + currentTx + '): ' + txArray[currentTx])
 
-      } else {
-        if (this.log > 2) console.log('iterateTransactions. currentTx (' + currentTx + '): ' + txArray[currentTx])
-        this.getTransactionInfo(txArray[currentTx])
-          .then((info) => this.iterateInputs(info))
-          .then((info) => this.iterateOutputs(info))        
-          .then(() => this.iterateTransactions(txArray, ++currentTx))
-          .then(() => resolve())
-          .catch((err) => reject(err))
-      }
-    })
+      return this.getTransactionInfo(txArray[currentTx])
+        .then((info) => this.iterateInputs(info))
+        .then((info) => this.iterateOutputs(info))
+        .then(() => this.iterateTransactions(txArray, ++currentTx))
+        .then(() => Promise.resolve())
+        .catch((err) => Promise.reject(err))
+    }
   }
 
   iterateInputs (tx) {
+    if (tx === null) {
+      return Promise.resolve(null)
+    }
     return promiseMap(tx.vin,
       (input) => {
         if (typeof input.coinbase !== 'undefined') {
@@ -55,6 +56,9 @@ class TransactionExplorer {
   }
 
   iterateOutputs (tx) {
+    if (tx === null) {
+      return Promise.resolve(null)
+    }
     return promiseMap(tx.vout, (output) => {
       return this.parser.parseOutput(this.currentBlock, tx, output)
         .then((addresses) => {

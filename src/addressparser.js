@@ -20,7 +20,9 @@ class AddressParser {
           .then((addressObj) => {
             return this.updateUtxoSet(tx, output, address)
               .then(() => Promise.resolve(new Address(address, blockHeight, output.value, 0, [tx.txid], [])))
+              .catch((err) => Promise.reject(err))
           })
+          .catch((err) => Promise.reject(err))
       })
     }
   }
@@ -36,10 +38,6 @@ class AddressParser {
         if (this.log > 3) console.log('utxo: ' + JSON.stringify(utxo))
         if (typeof utxo.outputs[input.vout] === 'undefined') {
           if (this.log > 1) console.log('utxo not found!')
-          if (this.log > 1) console.log(blockHeight)
-          if (this.log > 1) console.log(tx)
-          if (this.log > 1) console.log(input)
-          if (this.log > 1) console.log(utxo)
           process.kill(process.pid, 'SIGINT')
           return false
         }
