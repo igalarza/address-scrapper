@@ -23,36 +23,11 @@ class TransactionExplorer {
       if (this.log > 2) console.log('iterateTransactions. currentTx (' + currentTx + '): ' + txArray[currentTx])
 
       return this.getTransactionInfo(txArray[currentTx])
-        .then((info) => this.iterateInputs(info))
         .then((info) => this.iterateOutputs(info))
         .then(() => this.iterateTransactions(txArray, ++currentTx))
         .then(() => Promise.resolve())
         .catch((err) => Promise.reject(err))
     }
-  }
-
-  iterateInputs (tx) {
-    if (tx === null) {
-      return Promise.resolve(null)
-    }
-    return promiseMap(tx.vin,
-      (input) => {
-        if (typeof input.coinbase !== 'undefined') {
-          return Promise.resolve(tx)
-        } else {
-          return this.parser.parseInput(this.currentBlock, tx, input)
-            .then((address) => {
-              if (this.log > 2) console.log('iterateInputs. address: ' + JSON.stringify(address))
-              if (address.isDefined()) {
-                return this.persistAddress(address)
-                  .then(() => Promise.resolve(tx))
-                  .catch((err) => Promise.reject(err))
-              }
-            })
-        }
-      })
-      .then(() => Promise.resolve(tx))
-      .catch((err) => Promise.reject(err))
   }
 
   iterateOutputs (tx) {

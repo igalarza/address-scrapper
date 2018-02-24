@@ -2,12 +2,11 @@
 
 const MongoDB = require('../../src/database/mongodb')
 const Address = require('../../src/model/address')
-const Utxo = require('../../src/model/utxo')
 
-let url = 'mongodb://localhost:27017/address-scrapper'
+let url = 'mongodb://localhost:27017/'
 let dbName = 'address-scrapper-test'
 
-describe("MongoDB object test suite", function() {
+xdescribe("MongoDB object test suite", function() {
 
   let db = new MongoDB(0)
 
@@ -110,23 +109,4 @@ describe("MongoDB object test suite", function() {
       .then(() => db.close())
   }, 10000)
 
-  it('checks insertUtxo, findUtxo and removeUtxo methods', function(done) {
-
-    let utxo = Utxo.getInstance({
-      txid: 'testId',
-      outputs: []
-    })
-
-    db.connect(url, dbName)
-      .then(() => db.init())
-      .then(() => db.insertUtxo(utxo))
-      .then(() => db.findUtxo('testId'))
-      .then((utxoFound) => expect(utxoFound.txid).toBe('testId'))
-      .then(() => db.removeUtxo('testId'))
-      .then((response) => expect(response).toBe(true))
-      .catch()
-      .then(() => db.clean())
-      .then(() => done())
-      .then(() => db.close())
-  }, 10000)
 })
