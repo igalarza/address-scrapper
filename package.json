@@ -1,6 +1,6 @@
 {
   "name": "address-scrapper",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Extracts bitcoin addresses from the blockchain and stores them.",
   "license": "GPL-3.0-only",
   "main": "src/main",
