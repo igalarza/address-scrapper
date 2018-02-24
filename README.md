@@ -5,6 +5,10 @@ This little script explores bitcoin blockchain and creates an address database.
 
 **Caution!** This is a work in progress, with bugs and unimplemented features. I will release a beta as soon as the code is ready.
 
+## Branch 0.0.x
+
+When I started programing this I thought it would be easy to store the balances of each address, simply adding and substracting the amounts of the transactions in the address objects. Well, I've found out its not easy. Since I'm only really interested in the addresses themselves and not in the balances of each address, I'm going to prune the master branch of all the code about balances and utxos and move on.
+
 ## Dependencies
 
 The code is written in javascript and needs [node](https://nodejs.org/) to execute it. It also needs a bitcoin full node with the RCP service enabled.
